@@ -2,7 +2,8 @@
 
 
 ## Loading and preprocessing the data
-```{r data, echo=TRUE, message=FALSE}
+
+```r
 library(ggplot2)
 library(dplyr)
 df <- read.csv(con <- unz("activity.zip", "activity.csv"))
@@ -18,7 +19,8 @@ intervalTable <- df %.%
 ```
 
 ## What is mean total number of steps taken per day?
-```{r histogram, echo=TRUE}
+
+```r
 ggplot(dayTable, aes(x=total)) +
   geom_histogram(binwidth=1000) +
   ggtitle("Number of Steps Taken per Day") +
@@ -26,16 +28,20 @@ ggplot(dayTable, aes(x=total)) +
   theme_classic()
 ```
 
+![plot of chunk histogram](figure/histogram.png) 
+
 ### Mean and median number of steps taken per day
-```{r meanSteps, echo=TRUE}
+
+```r
 origMean <- mean(dayTable$total, na.rm=TRUE)
 origMedian <- median(dayTable$total, na.rm=TRUE)
 ```
-The average number of steps taken per day, excluding missing values, is `r round(origMean,0)` and the median number of steps is `r round(origMedian,0)`.
+The average number of steps taken per day, excluding missing values, is 9354 and the median number of steps is 1.0395 &times; 10<sup>4</sup>.
 
 
 ## What is the average daily activity pattern?
-```{r pattern, echo=TRUE}
+
+```r
 ggplot(intervalTable, aes(x=interval, y=mean)) +
   geom_path() +
   ggtitle("Average Daily Activity Pattern") +
@@ -44,36 +50,29 @@ ggplot(intervalTable, aes(x=interval, y=mean)) +
   theme_classic()
 ```
 
+![plot of chunk pattern](figure/pattern.png) 
+
 ### Interval with Max Average Number of Steps
-```{r maxAvg, echo=TRUE}
+
+```r
 intervalMax <- 
     intervalTable$interval[intervalTable$mean==max(intervalTable$mean)]
 ```
-The 5-minute interval with the maximum number of steps on average is `r intervalMax`.
+The 5-minute interval with the maximum number of steps on average is 835.
 
 
 ## Imputing missing values
 
 ### Number of Rows with Missing Values
-```{r missingVal, echo=FALSE}
-missing <- is.na(df$steps)
-numMissing <- sum(missing)
-```
-There are `r numMissing` 5-minute intervals with missing data. 
 
-```{r fillIn, echo=FALSE}
-#Fill in missing values with computed mean for that time interval
-sdf <- split(df, missing)
-for(i in 1:nrow(sdf[[2]])){
-  sdf[[2]]$steps[i] <- 
-      intervalTable$mean[intervalTable$interval==sdf[[2]]$interval[i]]
-}
-filledDF <- unsplit(sdf, missing)
-```
+There are 2304 5-minute intervals with missing data. 
+
+
 Missing data was filled in by imputing the computed average for the associated 5-minute interval.
 
 ### Histograms with Missing Values Filled In
-```{r newHistogram, echo=TRUE}
+
+```r
 filledDayTable <- filledDF %.%
   group_by(date) %.%
   summarize(total = sum(steps, na.rm=T))
@@ -85,15 +84,19 @@ ggplot(filledDayTable, aes(x=total)) +
   theme_classic()
 ```
 
+![plot of chunk newHistogram](figure/newHistogram.png) 
+
 ### Mean and Median with Missing Values Filled In
-```{r meanSteps2, echo=TRUE}
+
+```r
 filledMean <- mean(filledDayTable$total, na.rm=TRUE)
 filledMedian <- median(filledDayTable$total, na.rm=TRUE)
 ```
-The average number of steps taken per day, excluding missing values, is `r round(filledMean,0)` and the median number of steps is `r round(filledMedian,0)`.  The mean with missing numbers imputed is `r round(filledMean - origMean)` greater than the original and the median with missing numbers imputed is `r round(filledMedian - origMedian,0)` greater.  
+The average number of steps taken per day, excluding missing values, is 1.0766 &times; 10<sup>4</sup> and the median number of steps is 1.0766 &times; 10<sup>4</sup>.  The mean with missing numbers imputed is 1412 greater than the original and the median with missing numbers imputed is 371 greater.  
 
 ## Are there differences in activity patterns between weekdays and weekends?
-```{r weekdays, echo=TRUE}
+
+```r
 filledDF$day <- weekdays(filledDF$date)
 weekend <- c("Saturday", "Sunday")
 filledDF$weekday[filledDF$day %in% weekend] <- "weekend"
@@ -111,4 +114,6 @@ ggplot(filledIntervalTable, aes(x=interval, y=mean)) +
   xlab("5-minute Interval") +
   theme_classic()
 ```
+
+![plot of chunk weekdays](figure/weekdays.png) 
 
